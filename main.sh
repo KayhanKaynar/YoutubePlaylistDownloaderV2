@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Kayhan Kaynar , Nisan  2021
+# Kayhan Kaynar , Nisan 24, 2021
 # Youtube List Downloader V2.0
 # kayhan.kaynar@hotmail.com
 
@@ -8,12 +8,12 @@ trap bashtrap INT
 
 PATH=$PATH:"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 SOURCE=$(dirname "$0")
-dropboxfolder="TAN_BGM"
+dropboxfolder="SarkilarBiziSoyler_KayhanKaynar"
 
-Projectname="TAN"
-URL="https://www.youtube.com/playlist?list=PL_-Xi1PbNgkp3XRwqACekjsSlt7wvbQ3F"
+Projectname="POLLPROD"
+URL="https://www.youtube.com/playlist?list=PLk4iMx0kM9Mx5z-IMp9E9bL55jXNyr9_u"
 temp="/tmp/$Projectname"
-original="/mnt/ExtHDD/TAN"
+original="/mnt/ExtHDD/SARKILARBIZISOYLER"
 
 startfile=$SOURCE/start.txt
 files=$SOURCE/files.txt
@@ -21,6 +21,7 @@ links=$SOURCE/links.txt
 notfoundfiles=$SOURCE/notfoundfiles.txt
 
 start(){
+mkdir $temp
 youtube-dl -i -v --flat-playlist --skip-download --get-title --get-id "$URL" > $startfile
 }
 
@@ -69,7 +70,7 @@ do
     case "$line" in
     * )
     counter=$((counter+1))
-    ls -lrt /mnt/ExtHDD/SarkilarBiziSoyler_PollProduction/ | grep "$line" > /dev/null
+    ls -lrt $original | grep "$line" > /dev/null
     status=$?
     if [ $status -eq 1 ]
         then
@@ -85,8 +86,8 @@ cat $notfoundfiles  | while read line
 do
     case "$line" in
     * )
-    youtube-dl --playlist-start $line --playlist-end $line -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0  -o  "$te
-mp/%(title)s.%(ext)s" $URL
+    youtube-dl --playlist-start $line --playlist-end $line -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0  -o  "$
+temp/%(title)s.%(ext)s" $URL
     ;;
   esac
 done
@@ -107,7 +108,6 @@ iftempempty
 dropbox.sh upload $temp/* $dropboxfolder
 }
 
-
 iftempempty(){
     if [ -z "$(ls -A $temp)" ]; then
         echo "Yüklenecek herhangi bir dosya bulunamadı."
@@ -120,6 +120,7 @@ iftempempty(){
 
 bashtrap()
 {
+        check_part_files
         copydownloaded
         dropboxupload
         rm $startfile $files $links $notfoundfiles
@@ -130,10 +131,18 @@ bashtrap()
 }
 
 check_part_files(){
+
+if [ -z "$original" ]; then
 find $original -type f -name "*.webm" -exec rm {} \;
 find $original -type f -name "*.part" -exec rm {} \;
-}
+fi
 
+if [ -z "$temp" ]; then         
+find $temp -type f -name "*.webm" -exec rm {} \;
+find $temp -type f -name "*.part" -exec rm {} \;
+fi
+
+}
 
 time
 check_part_files
@@ -146,12 +155,12 @@ start
 striplist
 iffiledownloaded
 downloadit
+iftempempty
 copydownloaded
 dropboxupload
+time
 
 rm $startfile $files $links $notfoundfiles
 rm -rf $temp
-
-time
 
 exit 0
